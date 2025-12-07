@@ -9,11 +9,14 @@ private:
 	void initializeSprite() {
 		static Texture texture;
 		if (texture.getSize().x == 0) {
+			if (!texture.loadFromFile("healthPack.png")) {
 				Image img;
 				img.create(30, 30, Color::Green);
 				texture.loadFromImage(img);
+			}
 		}
 		this->sprite.setTexture(texture, true);
+		this->sprite.setScale(0.15f, 0.15f);
 	}
 
 public:

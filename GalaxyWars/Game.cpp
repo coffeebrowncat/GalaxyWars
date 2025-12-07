@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <iostream>
 
+
 using namespace std;
 
 // initializing variables
@@ -61,10 +62,14 @@ void Game::spawnEnemy() {
 			float randomX = static_cast<float>(rand() % 1500 + 50);
 			
 			// chance logic
-			int chance = this->levelManager->getAsteroidChance();
+			int chance = 40;
+			if (chance > 60) chance = 60; // Hard cap to ensure Aliens always have a 40% chance
+			if (chance < 10) chance = 10; // Minimum asteroids
 
 			// random number
 			int roll = rand() % 100;
+
+
 
 			if (roll < chance) {
 				// creating the Alien dynamically 
@@ -72,9 +77,25 @@ void Game::spawnEnemy() {
 				this->enemies[i] = new Asteroid(randomX, -100.f);
 			}
 			else {
-				this->enemies[i] = new Alien (randomX, -100.f);
+				// enemy pattern logic
+				// logic: 0 = Straight (Level 1), 1 = Diagonal (Level 2), 2 = ZigZag (Level 3)
+				int pattern = 0;
+
+				// if score is high (>300), use Pattern 2 (ZigZag)
+				if (this->points > 300) {
+					pattern = 2;
+				}
+				// if score is medium (>100), use Pattern 1 (Diagonal)
+				else if (this->points > 100) {
+					pattern = 1;
+				}
+				// otherwise default to 0 (Straight Down)
+
+				// pass the 'pattern' variable to the Alien constructor!
+				this->enemies[i] = new Alien(randomX, -100.f, pattern);
 			}
-			// spawning one enemy ONLY
+
+			// spawning one enemy ONLY per tick
 			break;
 		}
 	}
@@ -134,27 +155,6 @@ void Game::pollEvents() {
 		// did user press esc
 		if (this->e.type == Event::KeyPressed && this->e.key.code == Keyboard::Escape)
 			this->window->close();
-
-		// semi - automatic shooting
-		// this only runs ONCE when the key goes down.
-		if (this->e.type == Event::KeyPressed && this->e.key.code == Keyboard::Space) {
-
-			// find empty seat
-			for (int i = 0; i < this->maxBullets; i++) {
-				if (this->bullets[i] == nullptr) {
-
-					// create bullet
-					this->bullets[i] = new Projectile(
-						this->player->getPos().x - 23.f,
-						this->player->getPos().y - 50.f,
-						10.f
-					);
-
-					// stopping the loop
-					break; 
-				}
-			}
-		}
 	}
 }
 
@@ -190,12 +190,34 @@ void Game::updateCollision() {
 							if (roll < 20) {
 								// finding an empty slot in the powerUps array
 								for (int p = 0; p < 20; p++) {
+									// check: is this slot empty?
 									if (this->powerUps[p] == nullptr) {
+										// randomize drop type
+										int type = rand() % 3;
+
 										// creating the healthpack exactly where the enemy dies
-										this->powerUps[p] = new HealthPack(
-											this->enemies[i]->getPos().x,
-											this->enemies[i]->getPos().y
-										);
+										if (type == 0) {
+											this->powerUps[p] = new HealthPack(
+												this->enemies[i]->getPos().x,
+												this->enemies[i]->getPos().y
+											);
+										}
+
+										// shield invincibility
+										else if (type == 1) {
+											this->powerUps[p] = new Shield(
+												this->enemies[i]->getPos().x,
+												this->enemies[i]->getPos().y
+											);
+										}
+
+										// rapid fire
+										else {
+											this->powerUps[p] = new RapidFire(
+												this->enemies[i]->getPos().x,
+												this->enemies[i]->getPos().y
+											);
+										}
 										break;
 									}
 								}
@@ -240,16 +262,68 @@ void Game::update() {
 	this->pollEvents();
 
 	// checking if the player exists
-	if (this->player)
+	if (this->player) {
 		this->player->update();
+		// ensure timers count down!
+		this->player->updatePowerups();
+	}
+
+	// shooting logic
 
 	// if the timer hasn't reached the max yet, add 1 to it.
 	if (this->spawnTimer < this->spawnTimerMax)
 		this->spawnTimer += 1.f;
 
-	// condition 1: Is Space pressed?
-	// condition 2: Is the timer ready? (spawnTimer >= spawnTimerMax)
+	// checking rapid fire state
+	bool rapidFire = this->player->getRapidFireState();
 
+	// if the player has the powerup equipped, set timer to 5 (fast), else 20
+	this->spawnTimerMax = rapidFire ? 5.f : 9.f;
+
+	// handling input "Memory" (did we press space last frame?)
+	static bool wasSpacePressed = false;
+	bool isSpacePressed = Keyboard::isKeyPressed(Keyboard::Space);
+
+	// deciding if we should shoot
+	bool readyToShoot = false;
+
+	if (rapidFire) {
+		// RAPID FIRE: shoot if key is held AND timer is ready.
+		if (isSpacePressed && this->spawnTimer >= this->spawnTimerMax) {
+			readyToShoot = true;
+		}
+	}
+	else {
+		// NORMAL: Shoot ONLY if key is pressed NOW but was NOT pressed last frame (tap).
+		if (isSpacePressed && !wasSpacePressed && this->spawnTimer >= this->spawnTimerMax) {
+			readyToShoot = true;
+		}
+	}
+
+	// execute shot
+	if (readyToShoot) {
+		for (int i = 0; i < this->maxBullets; i++) {
+			if (this->bullets[i] == nullptr) {
+				// creating the bullet
+				this->bullets[i] = new Projectile(
+					this->player->getPos().x - 23.f,
+					this->player->getPos().y - 50.f,
+					10.f
+				);
+
+				// reset timer (gun reload)
+				this->spawnTimer = 0.f;
+
+				// break to go back to firing one bullet at a time
+				break;
+			}
+		}
+	}
+
+	// Update memory for next frame
+	wasSpacePressed = isSpacePressed;
+
+	// bullet updates
 	for (int i = 0; i < this->maxBullets; i++) {
 		// taking into consideration slots that are occupied
 		if (this->bullets[i] != nullptr) {
@@ -273,11 +347,44 @@ void Game::update() {
 
 	// timer limit
 	if (this->enemySpawnTimer >= this->enemySpawnTimerMax) {
-		this->spawnEnemy(); // spawn a guy
+
+		// >>> HARD FIX: Force Aliens to spawn directly here <<<
+		for (int i = 0; i < this->maxEnemies; i++) {
+			if (this->enemies[i] == nullptr) {
+
+				float randomX = static_cast<float>(rand() % 1500 + 50);
+
+				cout << "DEBUG: Spawning Alien at " << randomX << endl;
+				// FORCE RATIO: 30% Asteroids, 70% Aliens
+				int roll = rand() % 100;
+
+				if (roll < 30) {
+					// 30% Chance: Asteroid
+					this->enemies[i] = new Asteroid(randomX, -100.f);
+				}
+				else {
+					// 70% Chance: Alien!
+
+					// >>> FIX 3: ADD ALL 3 LEVELS <<<
+					int pattern = 0; // Default: Straight (Level 1)
+
+					if (this->points > 400) {
+						pattern = 2; // High Score: ZigZag (Level 3)
+					}
+					else if (this->points > 150) {
+						pattern = 1; // Medium Score: Diagonal (Level 2)
+					}
+
+					this->enemies[i] = new Alien(randomX, -100.f, pattern);
+				}
+				break;
+			}
+		}
+
 		this->enemySpawnTimer = 0.f; // reset timer
 	}
 
-	//  moving enemies
+	// moving enemies
 	for (int i = 0; i < this->maxEnemies; i++) {
 		// updating slots that have an enemy currently
 		if (this->enemies[i] != nullptr) {
@@ -300,6 +407,11 @@ void Game::update() {
 			// checking if the player touches it
 			if (this->player->getBounds().intersects(this->powerUps[i]->getBounds())) {
 				this->powerUps[i]->applyEffect(this->player);
+				delete this->powerUps[i];
+				this->powerUps[i] = nullptr;
+			}
+
+			else if (this->powerUps[i]->getPos().y > 1200.f) {
 				delete this->powerUps[i];
 				this->powerUps[i] = nullptr;
 			}

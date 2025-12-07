@@ -11,7 +11,7 @@ int main() {
     // while the game runs
     while (game.running()) {
         // updating (moving stuff)
-        game.update();
+          game.update();
         // rendering stuff
         game.render();
     }

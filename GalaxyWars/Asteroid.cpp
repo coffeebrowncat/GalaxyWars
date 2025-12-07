@@ -27,8 +27,8 @@ Asteroid::Asteroid(float x, float y) {
 	// stats
 	this->speed = 5.f;
 	this->rotationSpeed = 2.f;
-	this->hpMax = 3.f; // takes 3 bullets to kill
-	this->hp = this->hpMax;
+	this->hpMax = 3; // takes 3 bullets to kill
+	this->hp = 3;
 	this->points = 20.f;
 	this->damage = 2;
 }

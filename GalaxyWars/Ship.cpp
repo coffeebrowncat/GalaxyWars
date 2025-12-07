@@ -59,10 +59,13 @@ void Ship::update() {
 		this->sprite.move(-this->movementSpeed, 0.f);
 	if (Keyboard::isKeyPressed(Keyboard::Right))
 		this->sprite.move(this->movementSpeed, 0.f);
+
+	/* i dont want ts
 	if (Keyboard::isKeyPressed(Keyboard::Up))
 		this->sprite.move(0.f, -this->movementSpeed);
 	if (Keyboard::isKeyPressed(Keyboard::Down))
 		this->sprite.move(0.f, this->movementSpeed);
+		*/
 
 	// checking bounds
 	// get current position
@@ -86,6 +89,27 @@ void Ship::update() {
 	// 600 - 25 = 575
 	else if (pos.y > 1175.f)
 		this->sprite.setPosition(pos.x, 1175.f);
+
+	// powerUP duration and activation
+	this->updatePowerups();
+
+	// visual feedback: ascertaining png state
+	// case 1: shield active
+	if (this->hasShield) {
+		// tinting ship cyan
+		this->sprite.setColor(Color::Cyan);
+	}
+	// CASE 2: RAPID FIRE ACTIVE
+	else if (this->hasRapidFire) {
+		// tinting ship magenta for rapid fire
+		this->sprite.setColor(Color::Magenta);
+	}
+	// base case
+	else {
+		// original
+		this->sprite.setColor(Color::White);
+	}
+
 }
 
 void Ship::heal(int amount) {
@@ -103,6 +127,12 @@ void Ship::heal(int amount) {
 }
 
 void Ship::takeDamage(int damage) {
+	// block damage if said powerup is equipped
+	if (this->hasShield) return;
+
+	// normal functionality
 	this->hp -= damage;
 	if (this->hp < 0) this->hp = 0;
+
+
 }

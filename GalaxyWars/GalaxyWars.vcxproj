@@ -138,7 +138,9 @@
     <ClInclude Include="LevelManager.h" />
     <ClInclude Include="PowerUp.h" />
     <ClInclude Include="Projectile.h" />
+    <ClInclude Include="RapidFire.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Shield.h" />
     <ClInclude Include="Ship.h" />
   </ItemGroup>
   <ItemGroup>

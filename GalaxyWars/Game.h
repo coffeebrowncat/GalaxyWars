@@ -7,6 +7,8 @@
 #include "LevelManager.h"
 #include "Resource.h"
 #include "HealthPack.h"
+#include "Shield.h"
+#include "RapidFire.h"
 
 using namespace sf;
 

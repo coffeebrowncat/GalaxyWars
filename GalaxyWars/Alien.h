@@ -8,9 +8,12 @@ private:
 
 	// helper function to handle the texture loading
 	void initializeSprite();
+	
+	// patterned enemies
+	int moveType;
 
 public:
-	Alien(float x, float y);
+	Alien(float x, float y, int type);
 	virtual ~Alien();
 
 	// enemy class asks for movement so we define it
