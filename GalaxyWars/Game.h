@@ -23,6 +23,11 @@ struct Resource {
 	// constructor
 	Resource(int v = 0) : amount(v) {}
 
+	// RUBRIC: COPY CONSTRUCTOR (deep copy)
+	Resource(const Resource& other) {
+		this->amount = other.amount;
+	}
+
 	// allows us to: totalScrap = totalScrap + droppedScrap
 	Resource operator+(const Resource& other) const {
 		return Resource(this->amount + other.amount);
@@ -31,6 +36,13 @@ struct Resource {
 	// helper to compare for upgrades
 	bool operator >=(int threshold) const {
 		return this->amount >= threshold;
+	}
+
+	// RUBRIC: FRIEND FUNCTION
+	// allows us to cout << scrap directly
+	friend ostream& operator << (ostream& out, const Resource& r) {
+		out << r.amount;
+		return out;
 	}
 };
 
