@@ -131,9 +131,11 @@
   <ItemGroup>
     <ClInclude Include="Alien.h" />
     <ClInclude Include="Asteroid.h" />
+    <ClInclude Include="Boss.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameException.h" />
     <ClInclude Include="HealthPack.h" />
     <ClInclude Include="LevelManager.h" />
     <ClInclude Include="PowerUp.h" />
@@ -146,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="Alien.cpp" />
     <ClCompile Include="Asteroid.cpp" />
+    <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />

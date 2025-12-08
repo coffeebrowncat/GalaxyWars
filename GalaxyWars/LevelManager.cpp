@@ -21,7 +21,6 @@ void LevelManager::update(unsigned int score) {
 		this->asteroidChance = 40; // 40% asteroids, 60% ships
 		cout << "LEVEL UP! LEVEL 2!" << endl;
 	}
-
 	// level 3
 	else if (this->currentLevel == 2 && score >= 150) {
 		this->currentLevel = 3;

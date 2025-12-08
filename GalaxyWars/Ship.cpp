@@ -26,13 +26,13 @@ void Ship::initializeSprite() {
 		}
 	}
 
-	// CRITICAL FIX: The "true" argument forces the sprite to update its rectangle
+	// CRITICAL FIX: the "true" argument forces the sprite to update its rectangle
 	this->sprite.setTexture(texture, true);
 
-	// Safety: Force a color (White means "Show the texture as is")
+	// safety: forcing a color (white means "showing the texture as is")
 	this->sprite.setColor(Color::White);
 	this->sprite.setScale(2.f, 2.f);
-	// Safety: Set origin to center
+	// safety: setting origin to center
 	this->sprite.setOrigin(25.f, 25.f);
 }
 
@@ -72,7 +72,7 @@ void Ship::update() {
 	Vector2f pos = this->sprite.getPosition();
 
 	// left wall (0 is the left edge)
-	// We use "25" because the ship's origin is in the center (25 pixels from edge)
+	// we use "25" because the ship's origin is in the center (25 pixels from edge)
 	if (pos.x < 25.f)
 		this->sprite.setPosition(25.f, pos.y);
 
@@ -115,7 +115,7 @@ void Ship::update() {
 void Ship::heal(int amount) {
 	// adding health
 	this->hp += amount;
-	// 2. Debug print to see what the math did BEFORE the cap
+	// 2. debugging print to see what the math did BEFORE the cap
 	cout << "DEBUG: Math result: " << this->hp << endl;
 
 	// capping health
@@ -127,12 +127,10 @@ void Ship::heal(int amount) {
 }
 
 void Ship::takeDamage(int damage) {
-	// block damage if said powerup is equipped
+	// blocking damage if said powerup is equipped
 	if (this->hasShield) return;
 
 	// normal functionality
 	this->hp -= damage;
 	if (this->hp < 0) this->hp = 0;
-
-
 }

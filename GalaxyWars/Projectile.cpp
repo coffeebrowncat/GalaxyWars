@@ -28,8 +28,8 @@ Projectile::~Projectile() {}
 
 // update logic
 void Projectile::update() {
-	// "move(x, y)": We move 0 on X, and negative on Y.
-	// REMEMBER: In screens, Y=0 is the TOP. So negative Y means UP.
+	// "move(x, y)": we move 0 on X, and negative on Y.
+	// REMEMBER: in screens, Y=0 is the TOP. so negative Y means UP.
 	this->sprite.move(0.f, -this->speed);
 
 	// checking bounds

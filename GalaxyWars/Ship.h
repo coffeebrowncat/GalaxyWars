@@ -52,13 +52,7 @@ public:
 
 	// timer logic
 	void updatePowerups() {
-		if (this->hasShield) {
-			this->shieldTimer--;
-			if (this->shieldTimer <= 0) this->hasShield = false;
-		}
-		if (this->hasRapidFire) {
-			this->rapidFireTimer--;
-			if (this->rapidFireTimer <= 0) this->hasRapidFire = false;
-		}
+		if (this->hasShield && --this->shieldTimer <= 0) this->hasShield = false;
+		if (this->hasRapidFire && --this->rapidFireTimer <= 0) this->hasRapidFire = false;
 	}
 };

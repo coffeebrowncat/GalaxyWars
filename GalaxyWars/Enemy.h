@@ -15,12 +15,12 @@ public:
 	Enemy();
 	virtual ~Enemy();
 
-	// pure Virtual Function
+	// pure virtual function
 	// forces the class to write its own logic instead of being generic - "alien" - "asteroid"
 	virtual void update() = 0;
 
 	// getters
-	// These allow the Game Engine to read the stats safely.
+	// these allow the Game Engine to read the stats safely.
 	const int getDamage() const { return this->damage; }
 	const int getHp() const { return this->hp; }
 	const int getPoints() const { return this->points; }

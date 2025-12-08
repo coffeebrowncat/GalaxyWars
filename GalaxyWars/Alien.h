@@ -1,7 +1,7 @@
 #pragma once
 #include "Enemy.h"
 
-// The Alien is a specific type of Enemy
+// the Alien is a specific type of Enemy
 class Alien : public Enemy {
 private:
 	float speed; // only the alien needs to know its own speed
