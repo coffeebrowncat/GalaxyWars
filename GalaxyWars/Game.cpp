@@ -14,16 +14,35 @@ using namespace std;
 void Game::initializeVariables() {
 	this->window = nullptr; // intializing to prevent garbage values
 
+	// start screen
 	if (!this->menuBackgroundTexture.loadFromFile("menu_bg.png")) {
-		cout << "ERROR: MENU BACKGROUND MISSING" << endl;
+		cout << "ERROR: START BACKGROUND MISSING" << endl;
 	}
 	this->menuBackground.setTexture(this->menuBackgroundTexture);
+
+	// name screen bg
+	if (!this->nameBackgroundTexture.loadFromFile("name_bg.png")) {
+		cout << "ERROR: NAME BACKGROUND MISSING" << endl;
+	}
+	this->nameBackground.setTexture(this->nameBackgroundTexture);
+
+	// scoreboard bg
+	if (!this->scoreBackgroundTexture.loadFromFile("scoreboard_bg.png")) {
+		cout << "ERROR: SCORE BACKGROUND MISSING" << endl;
+	}
+	this->scoreBackground.setTexture(this->scoreBackgroundTexture);
 
 	// initializing the game background
 	if (!this->gameBackgroundTexture.loadFromFile("bg10.png")) {
 		cout << "ERROR: COULD NOT LOAD BACKGROUND" << endl;
 	}
 	this->gameBackground.setTexture(this->gameBackgroundTexture);
+
+	// initializing the outcome background
+	if (!this->outcomeBackgroundTexture.loadFromFile("outcome_bg.png")) {
+		cout << "ERROR: COULD NOT LOAD OUTCOME BACKGROUND" << endl;
+	}
+	this->outcomeBackground.setTexture(this->outcomeBackgroundTexture);
 
 	// this->worldBackground.setScale(...);
 
@@ -109,6 +128,14 @@ void Game::initializeMenu() {
 		cout << "ERROR: FONT NOT FOUND!" << endl;
 	}
 
+	if (!this->outcomeFont.loadFromFile("outcomeFont.ttf")) {
+		cout << "ERROR: FONT NOT FOUND!" << endl;
+	}
+
+	if (!this->scoreFont.loadFromFile("score.ttf")) {
+		cout << "ERROR: FONT NOT FOUND!" << endl;
+	}
+
 	// gui setup
 	this->guiText.setFont(this->font);
 	this->guiText.setCharacterSize(24);
@@ -128,17 +155,17 @@ void Game::initializeMenu() {
 	// menu options
 
 	// start
-	this->menuText[0].setFont(this->font);
+	this->menuText[0].setFont(this->titleFont);
 	this->menuText[0].setString("START GAME");
 	this->menuText[0].setCharacterSize(50);
-	this->menuText[0].setFillColor(Color::Red); // default
+	this->menuText[0].setFillColor(Color::Cyan); // default
 
 	FloatRect r0 = this->menuText[0].getLocalBounds();
 	this->menuText[0].setOrigin(r0.left + r0.width / 2.0f, r0.top + r0.height / 2.0f);
 	this->menuText[0].setPosition(800.f, 700.f);
 
 	// scoreboard
-	this->menuText[1].setFont(this->font);
+	this->menuText[1].setFont(this->titleFont);
 	this->menuText[1].setString("SCOREBOARD");
 	this->menuText[1].setCharacterSize(50);
 	this->menuText[1].setFillColor(Color::White);
@@ -148,7 +175,7 @@ void Game::initializeMenu() {
 	this->menuText[1].setPosition(800.f, 800.f);
 
 	// exit
-	this->menuText[2].setFont(this->font);
+	this->menuText[2].setFont(this->titleFont);
 	this->menuText[2].setString("EXIT");
 	this->menuText[2].setCharacterSize(50);
 	this->menuText[2].setFillColor(Color::White);
@@ -158,7 +185,7 @@ void Game::initializeMenu() {
 	this->menuText[2].setPosition(800.f, 900.f);
 
 	// gameover setup
-	this->gameOverText.setFont(this->font);
+	this->gameOverText.setFont(this->outcomeFont);
 	this->gameOverText.setString("GAME OVER\nPress R to Restart");
 	this->gameOverText.setCharacterSize(60);
 	this->gameOverText.setPosition(550.f, 400.f);
@@ -167,8 +194,8 @@ void Game::initializeMenu() {
 	// name input screen
 	this->nameInputText.setFont(this->font);
 	this->nameInputText.setCharacterSize(60);
-	this->nameInputText.setFillColor(Color(235, 16, 136));
-	this->nameInputText.setPosition(400.f, 500.f);
+	this->nameInputText.setFillColor(Color::Yellow);
+	this->nameInputText.setPosition(400.f, 600.f);
 	this->nameInputText.setString("ENTER PILOT NAME:\n\n> _");
 
 	FloatRect nameRect = this->nameInputText.getLocalBounds();
@@ -176,7 +203,7 @@ void Game::initializeMenu() {
 	this->nameInputText.setPosition(800.f, 600.f);
 
 	// scoreboard setup
-	this->scoreBoardText.setFont(this->font);
+	this->scoreBoardText.setFont(this->scoreFont);
 	this->scoreBoardText.setString("TOP 5 PILOTS\n\n1. ??? - 000\n2. ??? - 000\n3. ??? - 000\n\n(Press Esc to Return)");
 	this->scoreBoardText.setCharacterSize(40);
 	this->scoreBoardText.setPosition(600.f, 300.f);
@@ -195,7 +222,7 @@ void Game::initializeMenu() {
 	this->pauseText.setString("PAUSED\n\n[ESC] Resume\n[R] Restart\n[Q] Quit to Menu");
 	this->pauseText.setCharacterSize(50);
 	this->pauseText.setFillColor(Color(235, 16, 136));
-	this->pauseText.setPosition(600.f, 400.f);
+	this->pauseText.setPosition(800.f, 120.f);
 }
 
 // initializing window
@@ -329,9 +356,9 @@ void Game::pollEvents() {
 				}
 
 				// updating visuals
-				this->menuText[0].setFillColor(this->currentMenuOption == 0 ? Color::Red : Color::White);
-				this->menuText[1].setFillColor(this->currentMenuOption == 1 ? Color::Red : Color::White);
-				this->menuText[2].setFillColor(this->currentMenuOption == 2 ? Color::Red : Color::White);
+				this->menuText[0].setFillColor(this->currentMenuOption == 0 ? Color::Cyan : Color::White);
+				this->menuText[1].setFillColor(this->currentMenuOption == 1 ? Color::Cyan : Color::White);
+				this->menuText[2].setFillColor(this->currentMenuOption == 2 ? Color::Cyan : Color::White);
 
 				if (this->e.key.code == Keyboard::Enter) {
 					if (this->currentMenuOption == 0) {
@@ -986,16 +1013,16 @@ void Game::renderMenu() {
 }
 
 void Game::renderGameOver() {
-	// 1. Determine Win/Loss
+	// determining win/loss
 	// Red = Dead, Green = Victory (set in updateCollision)
 	bool victory = (this->gameOverText.getFillColor() == Color::Green);
 
-	// 2. Clear Screen (Black for Cyberpunk vibe)
-	this->window->clear(Color::Black);
+	// outcome bg
+	this->window->draw(this->outcomeBackground);
 
-	// 3. Setup the Title Logic
+	// logic
 	Text title;
-	title.setFont(this->titleFont);
+	title.setFont(this->outcomeFont);
 	title.setCharacterSize(110);
 
 	// --- SETUP ONLY (Don't draw yet) ---
@@ -1016,7 +1043,7 @@ void Game::renderGameOver() {
 	title.setPosition(800.f, 300.f);
 	this->window->draw(title);
 
-	// B. Draw Score
+	// drawing score
 	Text scoreDisplay;
 	scoreDisplay.setFont(this->font);
 	scoreDisplay.setCharacterSize(60);
@@ -1028,7 +1055,7 @@ void Game::renderGameOver() {
 	scoreDisplay.setPosition(800.f, 500.f);
 	this->window->draw(scoreDisplay);
 
-	// C. Draw Instructions
+	// drawing instructions
 	Text instructions;
 	instructions.setFont(this->font);
 	instructions.setCharacterSize(40);
@@ -1040,14 +1067,14 @@ void Game::renderGameOver() {
 	instructions.setPosition(800.f, 700.f);
 	this->window->draw(instructions);
 
-	// D. Draw "Saved" Message (if applicable)
+	// drawing saved message
 	string oldString = this->gameOverText.getString();
 	if (oldString.find("SAVED") != string::npos) {
 		Text savedMsg;
 		savedMsg.setFont(this->font);
 		savedMsg.setString("> DATA UPLOADED SUCCESSFULLY <");
 		savedMsg.setCharacterSize(30);
-		savedMsg.setFillColor(Color::Green);
+		savedMsg.setFillColor(Color::Cyan);
 
 		FloatRect svBounds = savedMsg.getLocalBounds();
 		savedMsg.setOrigin(svBounds.width / 2.f, svBounds.height / 2.f);
@@ -1058,20 +1085,7 @@ void Game::renderGameOver() {
 
 void Game::renderScoreBoard() {
 	// drawing bg
-	this->window->clear(Color(46, 0, 22));
-
-	// drawing title
-	Text title;
-	title.setFont(this->titleFont); // Use the cool sci-fi font
-	title.setString("HALL OF FAME");
-	title.setCharacterSize(100);
-	title.setFillColor(Color(235, 16, 136));
-
-	// centering title
-	FloatRect tBounds = title.getLocalBounds();
-	title.setOrigin(tBounds.width / 2.f, tBounds.height / 2.f);
-	title.setPosition(800.f, 200.f);
-	this->window->draw(title);
+	this->window->draw(this->scoreBackground);
 
 	// looping through the top 5
 	for (int i = 0; i < 5; i++) {
@@ -1134,21 +1148,8 @@ void Game::render() {
 	else if (this->gameState == NAME_INPUT) {
 		// clear to black
 		this->window->clear(Color::Black);
+		this->window->draw(this->nameBackground);
 
-		// 1. drawing a static title
-		Text header;
-		header.setFont(this->font);
-		header.setString("IDENTIFY YOURSELF");
-		header.setCharacterSize(100);
-		header.setFillColor(Color(235, 16, 136));
-
-		// center header
-		FloatRect hBounds = header.getLocalBounds();
-		header.setOrigin(hBounds.width / 2.f, hBounds.height / 2.f);
-		header.setPosition(800.f, 300.f);
-		this->window->draw(header);
-
-		// 2. draw the Input (Name)
 		// recenter the text every frame so it stays in the middle
 		FloatRect nBounds = this->nameInputText.getLocalBounds();
 		this->nameInputText.setOrigin(nBounds.width / 2.f, nBounds.height / 2.f);
@@ -1173,7 +1174,7 @@ void Game::render() {
 		// making sure it's centered!
 		FloatRect bounds = this->pauseText.getLocalBounds();
 		this->pauseText.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
-		this->pauseText.setPosition(800.f, 500.f);
+		this->pauseText.setPosition(800.f, 580.f);
 
 		this->window->draw(this->pauseText);
 	}

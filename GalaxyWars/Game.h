@@ -64,10 +64,24 @@ private:
 	Event e;
 	Font font;
 	Font titleFont;
+	Font outcomeFont;
+	Font scoreFont;
 
 	// menu background
 	Texture menuBackgroundTexture;
 	Sprite menuBackground;
+
+	// name screen background
+	Texture nameBackgroundTexture;
+	Sprite nameBackground;
+
+	// gameover 
+	Texture outcomeBackgroundTexture;
+	Sprite outcomeBackground;
+
+	// scoreboard
+	Texture scoreBackgroundTexture;
+	Sprite scoreBackground;
 
 	// background
 	Texture gameBackgroundTexture;
