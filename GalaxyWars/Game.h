@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <string>
 #include "Ship.h"
@@ -64,6 +65,10 @@ private:
 	Font font;
 	Font titleFont;
 
+	// menu background
+	Texture menuBackgroundTexture;
+	Sprite menuBackground;
+
 	// background
 	Texture gameBackgroundTexture;
 	Sprite gameBackground;
@@ -93,6 +98,13 @@ private:
 
 	float enemySpawnTimer;
 	float enemySpawnTimerMax;
+
+	// sound effects
+	SoundBuffer shootBuffer;
+	Sound shootSound;
+
+	Music menuMusic;
+	Music gameMusic;
 
 	// points and health
 	Resource scrap;

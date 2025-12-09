@@ -14,14 +14,17 @@ using namespace std;
 void Game::initializeVariables() {
 	this->window = nullptr; // intializing to prevent garbage values
 
-	// initializing the background
-	if (!this->gameBackgroundTexture.loadFromFile("bg8.jpg")) {
+	if (!this->menuBackgroundTexture.loadFromFile("menu_bg.png")) {
+		cout << "ERROR: MENU BACKGROUND MISSING" << endl;
+	}
+	this->menuBackground.setTexture(this->menuBackgroundTexture);
+
+	// initializing the game background
+	if (!this->gameBackgroundTexture.loadFromFile("bg10.png")) {
 		cout << "ERROR: COULD NOT LOAD BACKGROUND" << endl;
 	}
 	this->gameBackground.setTexture(this->gameBackgroundTexture);
 
-
-	// Scale it to fit window if needed (optional)
 	// this->worldBackground.setScale(...);
 
 	// creating the manager
@@ -68,6 +71,32 @@ void Game::initializeVariables() {
 
 	// player name storage initialization
 	this->playerName = ""; // starting empty
+
+	// detting up menu music
+	if (!this->menuMusic.openFromFile("menu_theme.wav")) {
+		cout << "ERROR: MENU MUSIC NOT FOUND" << endl;
+	}
+	this->menuMusic.setLoop(true);
+	this->menuMusic.setVolume(40.f);
+
+	// game music
+	if (!this->gameMusic.openFromFile("game_theme.ogg")) {
+		cout << "ERROR: GAME MUSIC NOT FOUND" << endl;
+	}
+	this->gameMusic.setLoop(true);
+	this->gameMusic.setVolume(30.f); // slightly lower so we can hear sound effects
+
+	if (!this->shootBuffer.loadFromFile("shootSound.wav")) {
+		cout << "ERROR: LASER SOUND MISSING" << endl;
+	}
+
+	// connecting sound to the buffer
+	this->shootSound.setBuffer(this->shootBuffer);
+	this->shootSound.setVolume(20.f);
+
+
+	// start loop instantly
+	this->menuMusic.play();
 }
 
 void Game::initializeMenu() {
@@ -76,7 +105,7 @@ void Game::initializeMenu() {
 		cout << "ERROR: FONT NOT FOUND!" << endl;
 	}
 
-	if (!this->titleFont.loadFromFile("Masterpiece.ttf")) {
+	if (!this->titleFont.loadFromFile("copixel.otf")) {
 		cout << "ERROR: FONT NOT FOUND!" << endl;
 	}
 
@@ -106,7 +135,7 @@ void Game::initializeMenu() {
 
 	FloatRect r0 = this->menuText[0].getLocalBounds();
 	this->menuText[0].setOrigin(r0.left + r0.width / 2.0f, r0.top + r0.height / 2.0f);
-	this->menuText[0].setPosition(800.f, 600.f);
+	this->menuText[0].setPosition(800.f, 700.f);
 
 	// scoreboard
 	this->menuText[1].setFont(this->font);
@@ -116,7 +145,7 @@ void Game::initializeMenu() {
 
 	FloatRect r1 = this->menuText[1].getLocalBounds();
 	this->menuText[1].setOrigin(r1.left + r1.width / 2.0f, r1.top + r1.height / 2.0f);
-	this->menuText[1].setPosition(800.f, 700.f);
+	this->menuText[1].setPosition(800.f, 800.f);
 
 	// exit
 	this->menuText[2].setFont(this->font);
@@ -126,7 +155,7 @@ void Game::initializeMenu() {
 
 	FloatRect r2 = this->menuText[2].getLocalBounds();
 	this->menuText[2].setOrigin(r2.left + r2.width / 2.0f, r2.top + r2.height / 2.0f);
-	this->menuText[2].setPosition(800.f, 800.f);
+	this->menuText[2].setPosition(800.f, 900.f);
 
 	// gameover setup
 	this->gameOverText.setFont(this->font);
@@ -342,6 +371,9 @@ void Game::pollEvents() {
 			if (this->e.type == Event::KeyPressed) {
 				// press enter to confirm and start game
 				if (this->e.key.code == Keyboard::Enter && !this->playerName.empty()) {
+					// switching music here
+					this->menuMusic.stop(); // kill the menu vibes
+					this->gameMusic.play(); // drop the beat
 					this->gameState = PLAY;
 				}
 				// press escape to go back
@@ -366,6 +398,8 @@ void Game::pollEvents() {
 				// restart 
 				else if (this->e.key.code == Keyboard::R) {
 					// reset logic (same as game over)
+					this->gameMusic.stop();
+					this->gameMusic.play(); // starting from the top
 					this->scrap = Resource(0);
 					delete this->player;
 					this->initializePlayer();
@@ -381,6 +415,9 @@ void Game::pollEvents() {
 
 				// quitting to main menu
 				else if (this->e.key.code == Keyboard::Q) {
+					// switching back
+					this->gameMusic.stop();
+					this->menuMusic.play();
 					this->gameState = MENU;
 				}
 			}
@@ -660,6 +697,7 @@ void Game::updatePlay() {
 	// execute shot
 	if (readyToShoot) {
 
+		this->shootSound.play();
 		// RUBRIC: UNLOCKING GREATER WEAPONS
 		int weaponLevel = (this->scrap.amount >= 500) ? 2 : 1;
 
@@ -864,7 +902,7 @@ void Game::updatePlay() {
 	FloatRect bounds = this->guiText.getLocalBounds();
 
 	// screen width (1600) - text width - margin (30 pixels from edge)
-	this->guiText.setPosition(1600.f - bounds.width - 30.f, 20.f);
+	this->guiText.setPosition(1600.f - bounds.width - 1450.f, 30.f);
 }
 
 void Game::renderPlay() {
@@ -940,84 +978,81 @@ void Game::update() {
 }
 
 void Game::renderMenu() {
-	this->window->draw(this->titleText);
+	// 1. Draw your new Menu Background
+	this->window->draw(this->menuBackground);
 	this->window->draw(this->menuText[0]);
 	this->window->draw(this->menuText[1]);
 	this->window->draw(this->menuText[2]);
 }
 
 void Game::renderGameOver() {
-	// checking the color you set in updateCollision. 
-		// red - dead, green - preen MUHAHAHAHHA
+	// 1. Determine Win/Loss
+	// Red = Dead, Green = Victory (set in updateCollision)
 	bool victory = (this->gameOverText.getFillColor() == Color::Green);
 
-	// black for both idc
-	if (victory) {
-		this->window->clear(Color(0, 0, 0));
-	}
-	else {
-		this->window->clear(Color(0, 0, 0));
-	}
+	// 2. Clear Screen (Black for Cyberpunk vibe)
+	this->window->clear(Color::Black);
 
-	// SYSTEM FAILURE / MISSION COMPLETE)
+	// 3. Setup the Title Logic
 	Text title;
 	title.setFont(this->titleFont);
 	title.setCharacterSize(110);
 
+	// --- SETUP ONLY (Don't draw yet) ---
 	if (victory) {
 		title.setString("MISSION COMPLETE");
-		title.setFillColor(Color::Cyan); // cyan 
+		title.setFillColor(Color::Cyan);
 	}
 	else {
 		title.setString("SYSTEM FAILURE");
-		title.setFillColor(Color::Red);  // red
+		title.setFillColor(Color::Red);
+	}
 
-		// centering title
-		FloatRect tBounds = title.getLocalBounds();
-		title.setOrigin(tBounds.width / 2.f, tBounds.height / 2.f);
-		title.setPosition(800.f, 300.f);
-		this->window->draw(title);
+	// --- COMMON DRAWING LOGIC (Run this for BOTH cases!) ---
 
-		// drawing score
-		Text scoreDisplay;
-		scoreDisplay.setFont(this->font);
-		scoreDisplay.setCharacterSize(60);
-		scoreDisplay.setFillColor(Color::Yellow);
-		scoreDisplay.setString("FINAL SCORE: " + to_string(this->scrap.amount));
+	// A. Draw Title
+	FloatRect tBounds = title.getLocalBounds();
+	title.setOrigin(tBounds.width / 2.f, tBounds.height / 2.f);
+	title.setPosition(800.f, 300.f);
+	this->window->draw(title);
 
-		// centering score
-		FloatRect sBounds = scoreDisplay.getLocalBounds();
-		scoreDisplay.setOrigin(sBounds.width / 2.f, sBounds.height / 2.f);
-		scoreDisplay.setPosition(800.f, 500.f);
-		this->window->draw(scoreDisplay);
+	// B. Draw Score
+	Text scoreDisplay;
+	scoreDisplay.setFont(this->font);
+	scoreDisplay.setCharacterSize(60);
+	scoreDisplay.setFillColor(Color::Yellow);
+	scoreDisplay.setString("FINAL SCORE: " + to_string(this->scrap.amount));
 
-		// instructions
-		Text instructions;
-		instructions.setFont(this->font);
-		instructions.setCharacterSize(40);
-		instructions.setFillColor(Color::White);
-		instructions.setString("PRESS [R] TO REBOOT SYSTEM\nPRESS [S] TO SAVE FLIGHT DATA");
+	FloatRect sBounds = scoreDisplay.getLocalBounds();
+	scoreDisplay.setOrigin(sBounds.width / 2.f, sBounds.height / 2.f);
+	scoreDisplay.setPosition(800.f, 500.f);
+	this->window->draw(scoreDisplay);
 
-		// centering
-		FloatRect iBounds = instructions.getLocalBounds();
-		instructions.setOrigin(iBounds.width / 2.f, iBounds.height / 2.f);
-		instructions.setPosition(800.f, 700.f);
-		this->window->draw(instructions);
+	// C. Draw Instructions
+	Text instructions;
+	instructions.setFont(this->font);
+	instructions.setCharacterSize(40);
+	instructions.setFillColor(Color::White);
+	instructions.setString("PRESS [R] TO REBOOT SYSTEM\nPRESS [S] TO SAVE FLIGHT DATA");
 
-		// save confirmation
-		string oldString = this->gameOverText.getString();
-		if (oldString.find("SAVED") != string::npos) {
-			Text savedMsg;
-			savedMsg.setFont(this->font);
-			savedMsg.setString("> DATA UPLOADED SUCCESSFULLY <");
-			savedMsg.setCharacterSize(30);
-			savedMsg.setFillColor(Color(235, 16, 136));
+	FloatRect iBounds = instructions.getLocalBounds();
+	instructions.setOrigin(iBounds.width / 2.f, iBounds.height / 2.f);
+	instructions.setPosition(800.f, 700.f);
+	this->window->draw(instructions);
 
-			FloatRect svBounds = savedMsg.getLocalBounds();
-			savedMsg.setOrigin(svBounds.width / 2.f, svBounds.height / 2.f);
-			savedMsg.setPosition(800.f, 850.f);
-			this->window->draw(savedMsg);
-		}
+	// D. Draw "Saved" Message (if applicable)
+	string oldString = this->gameOverText.getString();
+	if (oldString.find("SAVED") != string::npos) {
+		Text savedMsg;
+		savedMsg.setFont(this->font);
+		savedMsg.setString("> DATA UPLOADED SUCCESSFULLY <");
+		savedMsg.setCharacterSize(30);
+		savedMsg.setFillColor(Color::Green);
+
+		FloatRect svBounds = savedMsg.getLocalBounds();
+		savedMsg.setOrigin(svBounds.width / 2.f, svBounds.height / 2.f);
+		savedMsg.setPosition(800.f, 850.f);
+		this->window->draw(savedMsg);
 	}
 }
 
