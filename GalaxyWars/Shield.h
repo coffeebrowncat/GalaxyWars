@@ -22,7 +22,7 @@ private:
 		}
 		// applying texture to the sprite
 		this->sprite.setTexture(texture, true);
-		this->sprite.setScale(0.15f, 0.15f);
+		this->sprite.setScale(0.75f, 0.75f);
 	}
 
 public:

@@ -2,6 +2,8 @@
 #include "Entity.h" // reading the parent file to inherit from it
 #include <SFML/Window/Keyboard.hpp>
 
+using namespace sf;
+
 // creating a class named ship that takes everything from "Entity"
 // syntax indicating that the class ship (child) takes everything from entity (parent)
 class Ship : public Entity {

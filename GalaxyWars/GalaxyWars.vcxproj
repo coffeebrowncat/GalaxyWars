@@ -132,6 +132,7 @@
     <ClInclude Include="Alien.h" />
     <ClInclude Include="Asteroid.h" />
     <ClInclude Include="Boss.h" />
+    <ClInclude Include="BossBullet.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="Alien.cpp" />
     <ClCompile Include="Asteroid.cpp" />
     <ClCompile Include="Boss.cpp" />
+    <ClCompile Include="BossBullet.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />

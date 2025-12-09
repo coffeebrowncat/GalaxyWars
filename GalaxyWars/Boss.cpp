@@ -14,7 +14,7 @@ void Boss :: initializeSprite() {
 	}
 
 	this->sprite.setTexture(texture, true);
-	this->sprite.setScale(2.0f, 2.0f); // making him BIG
+	this->sprite.setScale(1.5f, 1.5f); // making him BIG
 }
 
 Boss::Boss(float x, float y) {
@@ -22,7 +22,7 @@ Boss::Boss(float x, float y) {
 	this->sprite.setPosition(x, y);
 
 	// stats
-	this->hpMax = 100;
+	this->hpMax = 300;
 	this->hp = this->hpMax;
 	this->damage = 50;
 	this->points = 5000;

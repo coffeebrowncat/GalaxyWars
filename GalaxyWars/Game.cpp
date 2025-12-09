@@ -14,6 +14,16 @@ using namespace std;
 void Game::initializeVariables() {
 	this->window = nullptr; // intializing to prevent garbage values
 
+	// initializing the background
+	if (!this->gameBackgroundTexture.loadFromFile("bg8.jpg")) {
+		cout << "ERROR: COULD NOT LOAD BACKGROUND" << endl;
+	}
+	this->gameBackground.setTexture(this->gameBackgroundTexture);
+
+
+	// Scale it to fit window if needed (optional)
+	// this->worldBackground.setScale(...);
+
 	// creating the manager
 	this->levelManager = new LevelManager();
 
@@ -62,38 +72,61 @@ void Game::initializeVariables() {
 
 void Game::initializeMenu() {
 	// robust resouce loading
-	if (!this->font.loadFromFile("Masterpiece.ttf")) {
+	if (!this->font.loadFromFile("Aero.ttf")) {
+		cout << "ERROR: FONT NOT FOUND!" << endl;
+	}
+
+	if (!this->titleFont.loadFromFile("Masterpiece.ttf")) {
 		cout << "ERROR: FONT NOT FOUND!" << endl;
 	}
 
 	// gui setup
 	this->guiText.setFont(this->font);
 	this->guiText.setCharacterSize(24);
-	this->guiText.setFillColor(Color::White);
+	this->guiText.setFillColor(Color::Yellow);
 	this->guiText.setPosition(10.f, 10.f);
 
+	// title
+	this->titleText.setFont(this->titleFont);
+	this->titleText.setString("Galaxy Wars");
+	this->titleText.setCharacterSize(150); // Make it HUGE
+	this->titleText.setFillColor(Color::White);
+
+	// centering the title
+	FloatRect titleRect = this->titleText.getLocalBounds();
+	this->titleText.setOrigin(titleRect.left + titleRect.width / 2.0f, titleRect.top + titleRect.height / 2.0f);
+	this->titleText.setPosition(800.f, 450.f);
 	// menu options
 
 	// start
 	this->menuText[0].setFont(this->font);
 	this->menuText[0].setString("START GAME");
 	this->menuText[0].setCharacterSize(50);
-	this->menuText[0].setPosition(650.f, 400.f);
 	this->menuText[0].setFillColor(Color::Red); // default
+
+	FloatRect r0 = this->menuText[0].getLocalBounds();
+	this->menuText[0].setOrigin(r0.left + r0.width / 2.0f, r0.top + r0.height / 2.0f);
+	this->menuText[0].setPosition(800.f, 600.f);
 
 	// scoreboard
 	this->menuText[1].setFont(this->font);
 	this->menuText[1].setString("SCOREBOARD");
 	this->menuText[1].setCharacterSize(50);
-	this->menuText[1].setPosition(640.f, 500.f); // below start
 	this->menuText[1].setFillColor(Color::White);
+
+	FloatRect r1 = this->menuText[1].getLocalBounds();
+	this->menuText[1].setOrigin(r1.left + r1.width / 2.0f, r1.top + r1.height / 2.0f);
+	this->menuText[1].setPosition(800.f, 700.f);
 
 	// exit
 	this->menuText[2].setFont(this->font);
 	this->menuText[2].setString("EXIT");
 	this->menuText[2].setCharacterSize(50);
-	this->menuText[2].setPosition(750.f, 600.f); // below Scoreboard
 	this->menuText[2].setFillColor(Color::White);
+
+	FloatRect r2 = this->menuText[2].getLocalBounds();
+	this->menuText[2].setOrigin(r2.left + r2.width / 2.0f, r2.top + r2.height / 2.0f);
+	this->menuText[2].setPosition(800.f, 800.f);
 
 	// gameover setup
 	this->gameOverText.setFont(this->font);
@@ -104,10 +137,14 @@ void Game::initializeMenu() {
 
 	// name input screen
 	this->nameInputText.setFont(this->font);
-	this->nameInputText.setCharacterSize(50);
-	this->nameInputText.setFillColor(Color::Cyan);
-	this->nameInputText.setPosition(400.f, 400.f);
+	this->nameInputText.setCharacterSize(60);
+	this->nameInputText.setFillColor(Color(235, 16, 136));
+	this->nameInputText.setPosition(400.f, 500.f);
 	this->nameInputText.setString("ENTER PILOT NAME:\n\n> _");
+
+	FloatRect nameRect = this->nameInputText.getLocalBounds();
+	this->nameInputText.setOrigin(nameRect.left + nameRect.width / 2.0f, nameRect.top + nameRect.height / 2.0f);
+	this->nameInputText.setPosition(800.f, 600.f);
 
 	// scoreboard setup
 	this->scoreBoardText.setFont(this->font);
@@ -128,7 +165,7 @@ void Game::initializeMenu() {
 	this->pauseText.setFont(this->font);
 	this->pauseText.setString("PAUSED\n\n[ESC] Resume\n[R] Restart\n[Q] Quit to Menu");
 	this->pauseText.setCharacterSize(50);
-	this->pauseText.setFillColor(Color::Cyan);
+	this->pauseText.setFillColor(Color(235, 16, 136));
 	this->pauseText.setPosition(600.f, 400.f);
 }
 
@@ -268,14 +305,18 @@ void Game::pollEvents() {
 				this->menuText[2].setFillColor(this->currentMenuOption == 2 ? Color::Red : Color::White);
 
 				if (this->e.key.code == Keyboard::Enter) {
-					// going to name entry instead of directly to play
-
 					if (this->currentMenuOption == 0) {
 						this->gameState = NAME_INPUT;
-						this->playerName = ""; // resetting name for new game
+						this->playerName = "";
 					}
-					else if (this->currentMenuOption == 1) this->gameState = SCOREBOARD; // showing scores
-					else this->window->close(); // exit
+					else if (this->currentMenuOption == 1) {
+						// >>> FIX START <<<
+						this->gameState = SCOREBOARD;
+						this->loadHighScores(); // Load only ONCE when entering state
+						this->sortScores();     // Sort only ONCE
+						// >>> FIX END <<<
+					}
+					else this->window->close();
 				}
 			}
 		}
@@ -396,7 +437,6 @@ void Game::pollEvents() {
 						this->saveHighScores();
 						// visual feedback
 						this->gameOverText.setString(s + "\n      (SAVED!)");
-						this->gameOverText.setFillColor(Color::Yellow);
 					}
 					catch (const GameException& err) {
 						cout << err.what() << endl;
@@ -716,18 +756,19 @@ void Game::updatePlay() {
 					this->enemies[i] = new Asteroid(randomX, -100.f);
 				}
 				else {
-					// 70% Chance: Alien!
+					// 1. Get the OFFICIAL level from the manager
+					int currentLevel = this->levelManager->getLevel();
+					int pattern = 0; // Default: Straight (Level 1)
 
-					// adding all 3 levels
-					int pattern = 0; // default: straight (Level 1)
-
-					if (this->scrap.amount > 400) {
-						pattern = 2; // high difficulty: zigzag (Level 3)
+					// 2. Set Pattern based on Level
+					if (currentLevel >= 3) {
+						pattern = 2; // ZigZag (Hard)
 					}
-					else if (this->scrap.amount > 150) {
-						pattern = 1; // medium difficulty: diagonal (Level 2)
+					else if (currentLevel == 2) {
+						pattern = 1; // Diagonal (Medium)
 					}
 
+					// 3. Spawn
 					this->enemies[i] = new Alien(randomX, -100.f, pattern);
 				}
 				break;
@@ -777,12 +818,16 @@ void Game::updatePlay() {
 			for (int i = 0; i < this->maxEnemies; i++) {
 
 				if (this->enemies[i] == nullptr) {
-					// spawning an Asteroid directly underneath the boss
-					this->enemies[i] = new Asteroid(
-						this->finalBoss->getPos().x + 100.f,
-						this->finalBoss->getPos().y + 100.f
-					);
-					break; // stop looking after we spawn one
+
+					// 1. calculating the dead center of the boss
+					FloatRect bossBounds = this->finalBoss->getBounds();
+					float centerX = bossBounds.left + (bossBounds.width / 2.f);
+					float bottomY = bossBounds.top + bossBounds.height;
+
+					// 2. spawning the shard there
+					this->enemies[i] = new BossBullet(centerX, bottomY);
+
+					break;
 				}
 			}
 			bossAttackTimer = 0.f;
@@ -812,11 +857,21 @@ void Game::updatePlay() {
 
 	// updating GUI text
 	// display health + score
-	this->guiText.setString("Scrap: " + to_string(this->scrap.amount) + " | HP: " + to_string(this->player->getHp()));
+	this->guiText.setString("SCRAP: " + to_string(this->scrap.amount) + "\nHEALTH: " + to_string(this->player->getHp()));
+
+	// right alignment logic
+	// measuring the width of the text block every frame.
+	FloatRect bounds = this->guiText.getLocalBounds();
+
+	// screen width (1600) - text width - margin (30 pixels from edge)
+	this->guiText.setPosition(1600.f - bounds.width - 30.f, 20.f);
 }
 
 void Game::renderPlay() {
-	//drawing the new frame
+	// drawing the game background first and foremost
+	this->window->draw(this->gameBackground);
+
+	// drawing the new frame
 	if (this->player)
 		this->player->render(*this->window);
 
@@ -885,83 +940,206 @@ void Game::update() {
 }
 
 void Game::renderMenu() {
+	this->window->draw(this->titleText);
 	this->window->draw(this->menuText[0]);
 	this->window->draw(this->menuText[1]);
 	this->window->draw(this->menuText[2]);
 }
 
 void Game::renderGameOver() {
-	this->window->draw(this->gameOverText);
-	this->window->draw(this->guiText);
+	// checking the color you set in updateCollision. 
+		// red - dead, green - preen MUHAHAHAHHA
+	bool victory = (this->gameOverText.getFillColor() == Color::Green);
+
+	// black for both idc
+	if (victory) {
+		this->window->clear(Color(0, 0, 0));
+	}
+	else {
+		this->window->clear(Color(0, 0, 0));
+	}
+
+	// SYSTEM FAILURE / MISSION COMPLETE)
+	Text title;
+	title.setFont(this->titleFont);
+	title.setCharacterSize(110);
+
+	if (victory) {
+		title.setString("MISSION COMPLETE");
+		title.setFillColor(Color::Cyan); // cyan 
+	}
+	else {
+		title.setString("SYSTEM FAILURE");
+		title.setFillColor(Color::Red);  // red
+
+		// centering title
+		FloatRect tBounds = title.getLocalBounds();
+		title.setOrigin(tBounds.width / 2.f, tBounds.height / 2.f);
+		title.setPosition(800.f, 300.f);
+		this->window->draw(title);
+
+		// drawing score
+		Text scoreDisplay;
+		scoreDisplay.setFont(this->font);
+		scoreDisplay.setCharacterSize(60);
+		scoreDisplay.setFillColor(Color::Yellow);
+		scoreDisplay.setString("FINAL SCORE: " + to_string(this->scrap.amount));
+
+		// centering score
+		FloatRect sBounds = scoreDisplay.getLocalBounds();
+		scoreDisplay.setOrigin(sBounds.width / 2.f, sBounds.height / 2.f);
+		scoreDisplay.setPosition(800.f, 500.f);
+		this->window->draw(scoreDisplay);
+
+		// instructions
+		Text instructions;
+		instructions.setFont(this->font);
+		instructions.setCharacterSize(40);
+		instructions.setFillColor(Color::White);
+		instructions.setString("PRESS [R] TO REBOOT SYSTEM\nPRESS [S] TO SAVE FLIGHT DATA");
+
+		// centering
+		FloatRect iBounds = instructions.getLocalBounds();
+		instructions.setOrigin(iBounds.width / 2.f, iBounds.height / 2.f);
+		instructions.setPosition(800.f, 700.f);
+		this->window->draw(instructions);
+
+		// save confirmation
+		string oldString = this->gameOverText.getString();
+		if (oldString.find("SAVED") != string::npos) {
+			Text savedMsg;
+			savedMsg.setFont(this->font);
+			savedMsg.setString("> DATA UPLOADED SUCCESSFULLY <");
+			savedMsg.setCharacterSize(30);
+			savedMsg.setFillColor(Color(235, 16, 136));
+
+			FloatRect svBounds = savedMsg.getLocalBounds();
+			savedMsg.setOrigin(svBounds.width / 2.f, svBounds.height / 2.f);
+			savedMsg.setPosition(800.f, 850.f);
+			this->window->draw(savedMsg);
+		}
+	}
 }
 
 void Game::renderScoreBoard() {
-	// loading latest scores to ensure display is accurate
-	this->loadHighScores();
-	this->sortScores();
+	// drawing bg
+	this->window->clear(Color(46, 0, 22));
 
+	// drawing title
 	Text title;
-	title.setFont(this->font);
-	title.setString("TOP 5 PILOTS");
-	title.setCharacterSize(60);
-	title.setFillColor(Color::Cyan);
-	title.setPosition(650.f, 100.f);
+	title.setFont(this->titleFont); // Use the cool sci-fi font
+	title.setString("HALL OF FAME");
+	title.setCharacterSize(100);
+	title.setFillColor(Color(235, 16, 136));
+
+	// centering title
+	FloatRect tBounds = title.getLocalBounds();
+	title.setOrigin(tBounds.width / 2.f, tBounds.height / 2.f);
+	title.setPosition(800.f, 200.f);
 	this->window->draw(title);
 
-	// looping through Top 5 (or fewer if we don't have 5 yet)
+	// looping through the top 5
 	for (int i = 0; i < 5; i++) {
+		// checking if we actually have a score at this index
 		if (i < this->numScores) {
 			Text entry;
 			entry.setFont(this->font);
-			entry.setCharacterSize(40);
+			entry.setCharacterSize(50);
 			entry.setFillColor(Color::White);
-			entry.setPosition(550.f, 250.f + (i * 60.f));
 
-			// display: rank. name - score (time)
+			// number 1 player is gold
+			if (i == 0) entry.setFillColor(Color::Yellow);
+
+			// format
 			string displayString = to_string(i + 1) + ". " +
-				this->topScores[i].name + " - " +
-				to_string(this->topScores[i].score) + " pts (" +
-				to_string((int)this->topScores[i].timeSurvived) + "s)";
+				this->topScores[i].name + "   -   " +
+				to_string(this->topScores[i].score);
 
 			entry.setString(displayString);
+
+			// centering each line
+			FloatRect eBounds = entry.getLocalBounds();
+			entry.setOrigin(eBounds.width / 2.f, eBounds.height / 2.f);
+			entry.setPosition(800.f, 450.f + (i * 80.f)); // Spaced out nicely
+
 			this->window->draw(entry);
 		}
 	}
 
+	// returning instructions
 	Text backText;
 	backText.setFont(this->font);
-	backText.setString("Press [ESC] to Return");
+	backText.setString("PRESS [ESC] TO RETURN");
 	backText.setCharacterSize(30);
-	backText.setFillColor(Color::Yellow);
-	backText.setPosition(680.f, 800.f);
+	backText.setFillColor(Color(100, 100, 100)); // Grey
+
+	FloatRect bBounds = backText.getLocalBounds();
+	backText.setOrigin(bBounds.width / 2.f, bBounds.height / 2.f);
+	backText.setPosition(800.f, 900.f);
+
 	this->window->draw(backText);
+
+	// IMPORTANT: since we are in a render helper, we don't call display() here 
+	// because the main render() function calls display() at the very end.
 }
 
 void Game::render() {
 	// clearing old frame (wiping the screen)
-	this->window->clear(Color(20, 20, 30));
+	if (this->gameState == MENU) {
+		this->window->clear(Color(46, 0, 22)); // menu, color // MAROON ISH
+	}
+	else {
+		this->window->clear(Color(20, 20, 30)); // Game color
+	}
 
 	// OOP: rendering based on state
 	if (this->gameState == MENU) {
 		this->renderMenu();
 	}
 	else if (this->gameState == NAME_INPUT) {
+		// clear to black
+		this->window->clear(Color::Black);
+
+		// 1. drawing a static title
+		Text header;
+		header.setFont(this->font);
+		header.setString("IDENTIFY YOURSELF");
+		header.setCharacterSize(100);
+		header.setFillColor(Color(235, 16, 136));
+
+		// center header
+		FloatRect hBounds = header.getLocalBounds();
+		header.setOrigin(hBounds.width / 2.f, hBounds.height / 2.f);
+		header.setPosition(800.f, 300.f);
+		this->window->draw(header);
+
+		// 2. draw the Input (Name)
+		// recenter the text every frame so it stays in the middle
+		FloatRect nBounds = this->nameInputText.getLocalBounds();
+		this->nameInputText.setOrigin(nBounds.width / 2.f, nBounds.height / 2.f);
+		this->nameInputText.setPosition(800.f, 600.f);
+
 		this->window->draw(this->nameInputText);
 	}
 	else if (this->gameState == PLAY) {
 		this->renderPlay();
 	}
 	else if (this->gameState == PAUSE) {
-		// 1. drawing the game behind it (so it looks frozen, not black)
+		// 1. drawing the frozen game first
 		this->renderPlay();
 
-		// optional i might consider later
-		// 2. darken it slightly (Optional, requires a transparent rectangle)
-		// RectangleShape overlay(Vector2f(1600, 1200));
-		// overlay.setFillColor(Color(0, 0, 0, 150));
-		// this->window->draw(overlay);
-		
-		// 3. drawing the menu
+		// 2. drawing a semi-transparent black overlay (the dim effect)
+		// 1600x1200 is your window size. (0,0,0, 200) = Black with high opacity
+		RectangleShape overlay(Vector2f(1600.f, 1200.f));
+		overlay.setFillColor(Color(0, 0, 0, 200));
+		this->window->draw(overlay);
+
+		// 3. drawing the pause text on top
+		// making sure it's centered!
+		FloatRect bounds = this->pauseText.getLocalBounds();
+		this->pauseText.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+		this->pauseText.setPosition(800.f, 500.f);
+
 		this->window->draw(this->pauseText);
 	}
 	else if (this->gameState == GAME_OVER) {

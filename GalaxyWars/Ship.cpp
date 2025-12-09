@@ -31,9 +31,10 @@ void Ship::initializeSprite() {
 
 	// safety: forcing a color (white means "showing the texture as is")
 	this->sprite.setColor(Color::White);
-	this->sprite.setScale(2.f, 2.f);
+	this->sprite.setScale(0.8f, 0.8f);
 	// safety: setting origin to center
-	this->sprite.setOrigin(25.f, 25.f);
+	FloatRect bounds = this->sprite.getLocalBounds();
+	this->sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 }
 
 // constructor logic

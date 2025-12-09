@@ -11,6 +11,7 @@
 #include "Shield.h"
 #include "RapidFire.h"
 #include "Boss.h"
+#include "BossBullet.h"
 
 using namespace sf;
 using namespace std;
@@ -61,6 +62,11 @@ private:
 	RenderWindow* window;
 	Event e;
 	Font font;
+	Font titleFont;
+
+	// background
+	Texture gameBackgroundTexture;
+	Sprite gameBackground;
 
 	// player object
 	Ship* player;
@@ -114,6 +120,7 @@ private:
 	Text scoreBoardText;
 	Text levelUpText;
 	Text pauseText;
+	Text titleText;
 	
 	float levelUpTimer;
 	int currentMenuOption;

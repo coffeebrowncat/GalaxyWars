@@ -16,7 +16,9 @@ void Alien::initializeSprite() {
 	}
 
 	this->sprite.setTexture(texture, true);
-	this->sprite.setScale(2.f, 2.f);
+	this->sprite.setScale(0.5f, 0.5f);
+	FloatRect bounds = this->sprite.getLocalBounds();
+	this->sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 }
 
 Alien::Alien(float x, float y, int type) {
